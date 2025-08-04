@@ -14,6 +14,10 @@ import { availableCountries } from './countries.ts';
 
 window.Alpine = Alpine
 
+interface Holiday {
+    date: string; // ISO date string
+}
+
 Alpine.data('quarterStats', () => ({
     workhoursPerDay: 8,
     weekDays: [
@@ -31,7 +35,7 @@ Alpine.data('quarterStats', () => ({
     factorInHolidays: false,
     countries: availableCountries,
     selectedCountry: '',
-    holidays: [],
+    holidays: [] as Holiday[],
     holidaysLoading: false,
     async fetchHolidays() {
         if (!this.factorInHolidays || !this.selectedCountry || this.holidaysLoading) return;
