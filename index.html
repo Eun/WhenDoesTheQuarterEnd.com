@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Many Days Are Left In This Quarter</title>
+</head>
+<body class="flex items-center justify-center">
+  <div x-data="quarterStats" class="flex flex-col space-y-2">
+    <div class="flex items-center justify-center text-4xl font-bold">
+      <span x-text="quarterLabel"></span>
+    </div>
+    <!-- Add this to your body to see it next to the SVG one -->
+
+
+    <div class="flex items-center justify-center text-2xl pb-2">ends in</div>
+    <div class="flex items-center">
+      <div class="grow"></div>
+      <div class="grid grid-cols-2">
+        <div class="text-center border-r-1 border-solid px-4 group" :title="'out of ' + totalDays">
+          <div class="relative w-30 h-30">
+            <div class="w-full h-full rounded-full group-hover:bg-[conic-gradient(Highlight_var(--p,0%),#1d1d1f_0)]" :style="`--p: ${remainingPercent}%`">
+              <div class="absolute inset-[1%] rounded-full bg-[#1d1d1f]"></div>
+            </div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-3xl font-bold" x-text="remainingDays.toFixed(1)"></div>
+              <div>days</div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center px-4 group" :title="'out of ' + totalHours">
+          <div class="relative w-30 h-30">
+            <div class="w-full h-full rounded-full group-hover:bg-[conic-gradient(Highlight_var(--p,0%),#1d1d1f_0)]" :style="`--p: ${remainingPercent}%`">
+              <div class="absolute inset-[1%] rounded-full bg-[#1d1d1f]"></div>
+            </div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-3xl font-bold" x-text="remainingHours.toFixed(1)"></div>
+              <div>hours</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-full text-center p-4">aka</div>
+        <div class="text-center border-r-1 border-solid px-4 group" :title="'out of ' + totalWorkDays">
+          <div class="relative w-30 h-30">
+            <div class="w-full h-full rounded-full group-hover:bg-[conic-gradient(Highlight_var(--p,0%),#1d1d1f_0)]" :style="`--p: ${remainingWorkPercent}%`">
+              <div class="absolute inset-[1%] rounded-full bg-[#1d1d1f]"></div>
+            </div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-3xl font-bold" x-text="remainingWorkDays.toFixed(1)"></div>
+              <div>days</div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center px-4 group" :title="'out of ' + totalWorkHours">
+          <div class="relative w-30 h-30">
+            <div class="w-full h-full rounded-full group-hover:bg-[conic-gradient(Highlight_var(--p,0%),#1d1d1f_0)]" :style="`--p: ${remainingWorkPercent}%`">
+              <div class="absolute inset-[1%] rounded-full bg-[#1d1d1f]"></div>
+            </div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-3xl font-bold" x-text="remainingWorkhours.toFixed(1)"></div>
+              <div>hours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grow"></div>
+    </div>
+    <details class="mt-8">
+      <summary class="text-center cursor-default">Settings</summary>
+      <div class="flex flex-col items-center">
+        <label for="workhoursPerDay" class="mb-2 font-medium">Workhours per day:</label>
+        <input type="number" id="workhoursPerDay" min="1" max="24" x-model.number="workhoursPerDay" x-on:input="setWorkhoursPerDay()" class="border rounded px-2 py-1 w-24 text-center" />
+      </div>
+      <div class="flex flex-col items-center mt-8">
+        <span class="mb-2 font-medium">Select workdays:</span>
+        <div class="flex gap-2">
+          <template x-for="(day, idx) in weekDays" :key="idx">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" :value="day.value" x-model.number="selectedWorkdays" x-on:change="setSelectedWorkdays()" class="hidden peer accent-auto" />
+              <span x-text="day.label" class="w-14 p-2 text-center border-2 border-transparent rounded-lg peer-checked:border-[color:Highlight]"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+      <div class="flex flex-row items-center justify-center mt-8 gap-2">
+        <label class="font-medium flex items-center gap-2">
+          <input type="checkbox" x-model="factorInHolidays" x-on:change="setFactorInHolidays()" />
+          Substract public holidays
+        </label>
+        <div class="flex flex-col items-center">
+          <select id="countrySelect" x-model="selectedCountry" x-on:change="setSelectedCountry()" class="border rounded px-2 py-1 w-48 text-center" :disabled="!factorInHolidays" :class="!factorInHolidays ? 'opacity-50 cursor-not-allowed' : ''">
+            <template x-for="country in countries" :key="country.countryCode">
+              <option :value="country.countryCode" x-text="country.name" :selected="country.countryCode == selectedCountry"></option>
+            </template>
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-col items-center mt-8">
+        <label for="customDate" class="mb-2 font-medium">Select date to calculate from:</label>
+        <input type="date" id="customDate" x-model="customDate" class="border rounded px-2 py-1 w-48 text-center" />
+      </div>
+      <div class="flex flex-col items-center mt-4">
+        <label for="customTime" class="mb-2 font-medium">Select time to calculate from:</label>
+        <input type="time" id="customTime" x-model="customTime" class="border rounded px-2 py-1 w-32 text-center" />
+      </div>
+    </details>
+  </div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
